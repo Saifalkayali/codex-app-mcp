@@ -1,4 +1,6 @@
+import type { ReadonlyYnabApi } from "../src/types/client.js";
 import { describe, expect, it } from "vitest";
+import { buildReadonlyToolDefinitions } from "../src/server/tool-definitions.js";
 import {
   findUncategorizedTransactions,
   listAccounts,
@@ -129,11 +131,13 @@ const transactions: YnabTransaction[] = [
   }
 ];
 
-const mockClient = {
-  listBudgets: async () => budgets,
-  listAccounts: async () => accounts,
-  listCategories: async () => categories,
-  listTransactions: async () => transactions
+type MockClient = ReadonlyYnabApi;
+
+const mockClient: MockClient = {
+  listBudgets: () => Promise.resolve(budgets),
+  listAccounts: () => Promise.resolve(accounts),
+  listCategories: () => Promise.resolve(categories),
+  listTransactions: () => Promise.resolve(transactions)
 };
 
 describe("YNAB tools", () => {
@@ -184,5 +188,14 @@ describe("YNAB tools", () => {
         totalOutflow: 12_500
       }
     ]);
+  });
+
+  it("builds explicit tool definitions with schemas", async () => {
+    const tools = buildReadonlyToolDefinitions(mockClient);
+    const listBudgetsTool = tools.find((tool) => tool.name === "listBudgets");
+
+    expect(tools).toHaveLength(6);
+    expect(listBudgetsTool?.description).toContain("List all YNAB budgets");
+    await expect(listBudgetsTool?.execute({})).resolves.toEqual(budgets);
   });
 });

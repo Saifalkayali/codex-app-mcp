@@ -85,24 +85,48 @@ export class YnabClient {
 
   public constructor(options: YnabClientOptions) {
     this.token = options.token;
-    this.baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
+    this.baseUrl = normalizeBaseUrl(options.baseUrl ?? DEFAULT_BASE_URL);
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES;
     this.fetchImpl = options.fetchImpl ?? fetch;
+
+    if (!this.token.trim()) {
+      throw new YnabConfigError("YNAB token cannot be empty.");
+    }
+
+    if (!Number.isFinite(this.timeoutMs) || this.timeoutMs <= 0) {
+      throw new YnabConfigError("YNAB timeout must be a positive number.");
+    }
+
+    if (!Number.isInteger(this.maxRetries) || this.maxRetries < 0) {
+      throw new YnabConfigError("YNAB max retries must be a non-negative integer.");
+    }
   }
 
   public static fromEnv(env: NodeJS.ProcessEnv = process.env): YnabClient {
-    const token = env.YNAB_TOKEN;
+    const token = env.YNAB_TOKEN?.trim();
 
     if (!token) {
       throw new YnabConfigError("Missing YNAB_TOKEN environment variable.");
     }
 
-    return new YnabClient({
-      token,
-      baseUrl: env.YNAB_API_BASE_URL,
-      timeoutMs: env.YNAB_TIMEOUT_MS ? Number(env.YNAB_TIMEOUT_MS) : undefined
-    });
+    const timeoutMs = env.YNAB_TIMEOUT_MS ? Number(env.YNAB_TIMEOUT_MS) : undefined;
+
+    if (timeoutMs !== undefined && !Number.isFinite(timeoutMs)) {
+      throw new YnabConfigError("YNAB_TIMEOUT_MS must be a valid number.");
+    }
+
+    const options: YnabClientOptions = { token };
+
+    if (env.YNAB_API_BASE_URL) {
+      options.baseUrl = env.YNAB_API_BASE_URL;
+    }
+
+    if (timeoutMs !== undefined) {
+      options.timeoutMs = timeoutMs;
+    }
+
+    return new YnabClient(options);
   }
 
   public async listBudgets(): Promise<YnabBudget[]> {
@@ -168,11 +192,16 @@ export class YnabClient {
           }
 
           const bodyText = await response.text();
-          throw new YnabApiError(`YNAB API request failed with status ${response.status}: ${bodyText || "unknown error"}`, {
+          const errorOptions: { status: number; requestId?: string; retryable: boolean } = {
             status: response.status,
-            requestId,
             retryable
-          });
+          };
+
+          if (requestId) {
+            errorOptions.requestId = requestId;
+          }
+
+          throw new YnabApiError(`YNAB API request failed with status ${response.status}: ${bodyText || "unknown error"}`, errorOptions);
         }
 
         const json = (await response.json()) as YnabEnvelope<T>;
@@ -278,6 +307,10 @@ function getRetryAfterSeconds(value: string | null): number | null {
 
   const seconds = Number(value);
   return Number.isFinite(seconds) ? seconds * 1_000 : null;
+}
+
+function normalizeBaseUrl(value: string): string {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
 }
 
 function backoffMs(attempt: number): number {

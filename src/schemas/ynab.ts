@@ -112,6 +112,8 @@ export const listRecentTransactionsOutputSchema = z.array(ynabTransactionSchema)
 export const findUncategorizedTransactionsOutputSchema = z.array(uncategorizedTransactionSchema);
 export const monthlySpendByCategoryOutputSchema = z.array(monthlyCategorySpendSchema);
 
+export const noInputSchema = z.object({}).strict();
+
 export type BudgetIdInput = z.infer<typeof budgetIdInputSchema>;
 export type BudgetWithDaysInput = z.infer<typeof budgetWithDaysInputSchema>;
 export type MonthlySpendInput = z.infer<typeof monthlySpendInputSchema>;

@@ -1,17 +1,23 @@
 {
-  "name": "codex-app-mcp",
+  "name": "ynab-readonly-mcp-server",
   "version": "0.1.0",
   "description": "Production-style TypeScript starter repo for a read-only YNAB MCP server.",
   "type": "module",
-  "main": "dist/server/index.js",
-  "types": "dist/server/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsx watch src/server/index.ts",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint src test --ext .ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck && npm run test"

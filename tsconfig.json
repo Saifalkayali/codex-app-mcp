@@ -19,5 +19,5 @@
     "rootDir": ".",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "eslint.config.js"]
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }

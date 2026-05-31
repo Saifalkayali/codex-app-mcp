@@ -1,7 +1,7 @@
-import type { YnabClient } from "../clients/ynab-client.js";
 import { monthlySpendByCategoryOutputSchema, monthlySpendInputSchema } from "../schemas/ynab.js";
+import type { ReadonlyYnabApi } from "../types/client.js";
 
-export async function monthlySpendByCategory(client: YnabClient, input: unknown) {
+export async function monthlySpendByCategory(client: ReadonlyYnabApi, input: unknown) {
   const { budgetId, month } = monthlySpendInputSchema.parse(input);
   const categories = await client.listCategories(budgetId);
   const transactions = await client.listTransactions(budgetId, `${month}-01`);

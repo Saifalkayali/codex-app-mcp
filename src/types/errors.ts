@@ -7,7 +7,7 @@ export class YnabConfigError extends Error {
 
 export class YnabApiError extends Error {
   public readonly status: number;
-  public readonly requestId?: string;
+  public readonly requestId: string | undefined;
   public readonly retryable: boolean;
 
   public constructor(message: string, options: { status: number; requestId?: string; retryable: boolean }) {

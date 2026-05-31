@@ -12,6 +12,10 @@ describe("YnabClient", () => {
     expect(() => YnabClient.fromEnv({})).toThrow(YnabConfigError);
   });
 
+  it("throws when timeout is invalid", () => {
+    expect(() => YnabClient.fromEnv({ YNAB_TOKEN: "token", YNAB_TIMEOUT_MS: "nope" })).toThrow(YnabConfigError);
+  });
+
   it("retries rate-limited responses", async () => {
     const fetchImpl = vi
       .fn<typeof fetch>()

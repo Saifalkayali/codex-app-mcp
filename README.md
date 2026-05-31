@@ -1,6 +1,6 @@
-# codex-app-mcp
+# YNAB Read-Only MCP Server Starter
 
-Production-style TypeScript starter for a read-only YNAB MCP server.
+Production-style TypeScript starter for building a read-only MCP server on top of the YNAB API.
 
 ## Features
 
@@ -17,8 +17,8 @@ Production-style TypeScript starter for a read-only YNAB MCP server.
 ```text
 src/
   clients/     YNAB API client and retry logic
+  server/      MCP server assembly and tool definitions
   schemas/     Zod schemas for inputs and outputs
-  server/      MCP server assembly entrypoint
   tools/       Read-only tool implementations
   types/       Shared TypeScript types and error classes
 test/          Unit tests with mocked responses
@@ -72,7 +72,13 @@ test/          Unit tests with mocked responses
 
 ## MCP Wiring
 
-The starter intentionally stops short of picking an MCP SDK or transport. See [src/server/index.ts](/Users/saifalkayali/Documents/Codex/2026-04-21-create-a-production-style-typescript-starter/src/server/index.ts) for the server assembly point and the TODO markers where transport registration should be connected.
+The starter intentionally stops short of picking an MCP SDK or transport. See `src/server/index.ts` for the server assembly point and `src/server/tool-definitions.ts` for the place where input/output schemas are already paired with each tool.
+
+## Extending the Starter
+
+- Wire the objects returned by `buildReadonlyToolDefinitions()` into your MCP SDK registration layer.
+- Keep all YNAB writes disabled unless you intentionally design and review a separate write-capable client.
+- Prefer adding new tools as small modules under `src/tools/` with matching Zod schemas in `src/schemas/`.
 
 ## Example Prompts
 

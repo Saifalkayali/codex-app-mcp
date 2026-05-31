@@ -1,9 +1,10 @@
-import type { YnabClient } from "../clients/ynab-client.js";
 import { budgetWithDaysInputSchema, findUncategorizedTransactionsOutputSchema } from "../schemas/ynab.js";
+import type { ReadonlyYnabApi } from "../types/client.js";
+import { daysAgoIsoDate } from "./date.js";
 
-export async function findUncategorizedTransactions(client: YnabClient, input: unknown) {
+export async function findUncategorizedTransactions(client: ReadonlyYnabApi, input: unknown) {
   const { budgetId, days } = budgetWithDaysInputSchema.parse(input);
-  const sinceDate = toSinceDate(days);
+  const sinceDate = daysAgoIsoDate(days);
   const transactions = await client.listTransactions(budgetId, sinceDate);
 
   const uncategorized = transactions
@@ -15,10 +16,4 @@ export async function findUncategorizedTransactions(client: YnabClient, input: u
     }));
 
   return findUncategorizedTransactionsOutputSchema.parse(uncategorized);
-}
-
-function toSinceDate(days: number): string {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() - days);
-  return date.toISOString().slice(0, 10);
 }
